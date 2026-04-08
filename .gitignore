@@ -1,0 +1,7 @@
+# Prevent API routes from being built
+node_modules
+.expo
+dist
+webpack.config.js
+babel.config.js
+tsconfig.json
