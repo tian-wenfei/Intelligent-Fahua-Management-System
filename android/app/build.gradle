@@ -87,6 +87,11 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
 
     namespace 'com.teafarm.fermentationmanager'
+    
+    kotlinOptions {
+        freeCompilerArgs += ['-P', 'plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=1.9.24']
+    }
+    
     defaultConfig {
         applicationId 'com.teafarm.fermentationmanager'
         minSdkVersion rootProject.ext.minSdkVersion

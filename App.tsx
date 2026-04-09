@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 
 import DeviceListScreen from './DeviceListScreen';
 import DeviceDetailScreen from './DeviceDetailScreen';
@@ -13,9 +13,10 @@ import DashboardScreen from './DashboardScreen';
 import SettingsScreen from './SettingsScreen';
 import LoginScreen from './LoginScreen';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { RootStackParamList, MainTabParamList } from './src/types/navigation';
 
-const Stack = createNativeStackNavigator();
-const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator<MainTabParamList>();
 
 function TabIcon({ name, focused }: { name: string; focused: boolean }) {
   const icons: Record<string, string> = {
@@ -117,21 +118,6 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5'
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666'
-  },
   tabIconContainer: {
     alignItems: 'center',
     justifyContent: 'center'
@@ -141,14 +127,6 @@ const styles = StyleSheet.create({
     opacity: 0.6
   },
   tabIconFocused: {
-    opacity: 1
-  },
-  tabIconImage: {
-    width: 24,
-    height: 24,
-    opacity: 0.6
-  },
-  tabIconImageFocused: {
     opacity: 1
   },
   loadingContainer: {

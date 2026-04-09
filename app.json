@@ -11,7 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#10B981"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
@@ -37,6 +39,11 @@
           "color": "#4CAF50"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "58aa5253-7a52-46f1-a422-48b548b91f56"
+      }
+    }
   }
 }
