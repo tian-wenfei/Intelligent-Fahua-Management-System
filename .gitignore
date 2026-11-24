@@ -5,3 +5,9 @@ dist
 webpack.config.js
 babel.config.js
 tsconfig.json
+
+# Local tooling / editor state
+.claude
+.playwright-mcp
+.idea
+*.apk

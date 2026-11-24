@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { getStatusConfig } from '../config/constants';
 import { Device } from '../types';
+import { LocationIcon, TemperatureIcon, HumidityIcon, ProgressIcon } from './icons';
 
 interface DeviceCardProps {
   device: Device;
@@ -20,12 +21,13 @@ export function DeviceCard({ device, onPress, compact = false }: DeviceCardProps
     >
       <View style={styles.cardHeader}>
         <View style={styles.deviceInfoRow}>
-          <View style={[styles.statusIndicator, { backgroundColor: statusConfig.color }]}>
-            <Text style={styles.statusIcon}>{statusConfig.icon}</Text>
-          </View>
+          <View style={[styles.statusDot, { backgroundColor: statusConfig.color }]} />
           <View style={styles.deviceInfo}>
             <Text style={styles.deviceName}>{device.name}</Text>
-            <Text style={styles.deviceLocation}>📍 {device.location}</Text>
+            <View style={styles.deviceLocationRow}>
+              <LocationIcon color="#9CA3AF" size={13} />
+              <Text style={styles.deviceLocation}>{device.location}</Text>
+            </View>
           </View>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: statusConfig.bgColor }]}>
@@ -38,7 +40,7 @@ export function DeviceCard({ device, onPress, compact = false }: DeviceCardProps
       <View style={styles.metricsContainer}>
         <View style={styles.metricItem}>
           <View style={[styles.metricIconBg, { backgroundColor: '#FEF3C7' }]}>
-            <Text style={styles.metricIcon}>🌡️</Text>
+            <TemperatureIcon color="#F59E0B" size={18} />
           </View>
           <View style={styles.metricContent}>
             <Text style={styles.metricValue}>{device.temperature}°C</Text>
@@ -50,7 +52,7 @@ export function DeviceCard({ device, onPress, compact = false }: DeviceCardProps
 
         <View style={styles.metricItem}>
           <View style={[styles.metricIconBg, { backgroundColor: '#DBEAFE' }]}>
-            <Text style={styles.metricIcon}>💧</Text>
+            <HumidityIcon color="#3B82F6" size={18} />
           </View>
           <View style={styles.metricContent}>
             <Text style={styles.metricValue}>{device.humidity}%</Text>
@@ -62,7 +64,7 @@ export function DeviceCard({ device, onPress, compact = false }: DeviceCardProps
 
         <View style={styles.metricItem}>
           <View style={[styles.metricIconBg, { backgroundColor: '#D1FAE5' }]}>
-            <Text style={styles.metricIcon}>📈</Text>
+            <ProgressIcon color="#10B981" size={18} />
           </View>
           <View style={styles.metricContent}>
             <Text style={styles.metricValue}>{device.fermentationProgress}%</Text>
@@ -139,16 +141,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1
   },
-  statusIndicator: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12
-  },
-  statusIcon: {
-    fontSize: 22
+  statusDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 10,
+    marginTop: 4
   },
   deviceInfo: {
     flex: 1
@@ -159,9 +157,14 @@ const styles = StyleSheet.create({
     color: '#1F2937',
     marginBottom: 4
   },
+  deviceLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
   deviceLocation: {
     fontSize: 13,
-    color: '#6B7280'
+    color: '#6B7280',
+    marginLeft: 4
   },
   statusBadge: {
     paddingHorizontal: 12,
@@ -192,9 +195,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8
-  },
-  metricIcon: {
-    fontSize: 18
   },
   metricContent: {
     alignItems: 'flex-start'

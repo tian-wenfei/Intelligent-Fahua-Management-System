@@ -1,9 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Modal, TextInput, Image } from 'react-native';
 import { useAuth } from './src/context/AuthContext';
+import { mockDevices } from './src/data/mockData';
+import {
+  UserCircleIcon,
+  LockIcon,
+  LogoutIcon,
+  AlertIcon,
+  SpeakerIcon,
+  PhoneIcon,
+  RefreshIcon,
+  TrashIcon,
+  HelpIcon,
+  InfoIcon
+} from './src/components/icons';
 
 interface SettingItemProps {
-  icon: string;
+  icon: React.ReactNode;
   iconBg: string;
   title: string;
   subtitle?: string;
@@ -15,7 +28,7 @@ function SettingItem({ icon, iconBg, title, subtitle, onPress, rightElement }: S
   return (
     <TouchableOpacity style={styles.settingItem} onPress={onPress} activeOpacity={onPress ? 0.7 : 1}>
       <View style={[styles.settingIcon, { backgroundColor: iconBg }]}>
-        <Text style={styles.settingIconText}>{icon}</Text>
+        {icon}
       </View>
       <View style={styles.settingContent}>
         <Text style={styles.settingTitle}>{title}</Text>
@@ -56,6 +69,16 @@ export default function SettingsScreen() {
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const stats = useMemo(() => {
+    const online = mockDevices.filter(d => d.status === 'online').length;
+    const alerting = mockDevices.filter(d => d.status === 'warning' || d.status === 'error').length;
+    return {
+      total: mockDevices.length,
+      online,
+      alerting
+    };
+  }, []);
 
   const handleEdit = () => {
     setEditName(user?.username || '');
@@ -112,6 +135,13 @@ export default function SettingsScreen() {
     ]);
   };
 
+  const switchProps = (value: boolean, setValue: (v: boolean) => void) => ({
+    value,
+    onValueChange: setValue,
+    trackColor: { false: '#E5E7EB', true: '#10B981' },
+    thumbColor: value ? '#fff' : '#f4f4f4'
+  });
+
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -124,8 +154,8 @@ export default function SettingsScreen() {
           <View style={styles.profileCard}>
             <View style={styles.avatarContainer}>
               <View style={styles.avatar}>
-                <Image 
-                  source={require('./assets/logo.png')} 
+                <Image
+                  source={require('./assets/logo.png')}
                   style={styles.avatarImage}
                   resizeMode="contain"
                 />
@@ -134,7 +164,7 @@ export default function SettingsScreen() {
             </View>
             <View style={styles.profileInfo}>
               <Text style={styles.userName}>{user?.username || '管理员'}</Text>
-              <Text style={styles.userRole}>🍵 {user?.role || '茶厂管理员'}</Text>
+              <Text style={styles.userRole}>{user?.role || '茶厂管理员'}</Text>
             </View>
             <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
               <Text style={styles.editButtonText}>编辑</Text>
@@ -143,38 +173,38 @@ export default function SettingsScreen() {
 
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>6</Text>
+              <Text style={styles.statValue}>{stats.total}</Text>
               <Text style={styles.statLabel}>设备总数</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: '#10B981' }]}>3</Text>
+              <Text style={[styles.statValue, { color: '#10B981' }]}>{stats.online}</Text>
               <Text style={styles.statLabel}>运行中</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: '#F59E0B' }]}>2</Text>
+              <Text style={[styles.statValue, { color: '#F59E0B' }]}>{stats.alerting}</Text>
               <Text style={styles.statLabel}>报警中</Text>
             </View>
           </View>
 
           <SettingGroup title="账户管理">
             <SettingItem
-              icon="👤"
+              icon={<UserCircleIcon color="#10B981" size={21} />}
               iconBg="#ECFDF5"
               title="个人信息"
               subtitle="修改用户名和角色"
               onPress={handleEdit}
             />
             <SettingItem
-              icon="🔑"
+              icon={<LockIcon color="#F59E0B" size={21} />}
               iconBg="#FEF3C7"
               title="修改密码"
               subtitle="修改账户登录密码"
               onPress={handleChangePassword}
             />
             <SettingItem
-              icon="🚪"
+              icon={<LogoutIcon color="#EF4444" size={21} />}
               iconBg="#FEE2E2"
               title="退出登录"
               subtitle="退出当前账户"
@@ -184,66 +214,38 @@ export default function SettingsScreen() {
 
           <SettingGroup title="通知设置">
             <SettingItem
-              icon="🔔"
+              icon={<AlertIcon color="#F59E0B" size={21} />}
               iconBg="#FEF3C7"
               title="接收报警通知"
               subtitle="设备异常时推送通知"
-              rightElement={
-                <Switch
-                  value={notificationsEnabled}
-                  onValueChange={setNotificationsEnabled}
-                  trackColor={{ false: '#E5E7EB', true: '#10B981' }}
-                  thumbColor={notificationsEnabled ? '#fff' : '#f4f4f4'}
-                />
-              }
+              rightElement={<Switch {...switchProps(notificationsEnabled, setNotificationsEnabled)} />}
             />
             <SettingItem
-              icon="🔊"
+              icon={<SpeakerIcon color="#3B82F6" size={21} />}
               iconBg="#DBEAFE"
               title="提示音"
               subtitle="报警时播放声音"
-              rightElement={
-                <Switch
-                  value={soundEnabled}
-                  onValueChange={setSoundEnabled}
-                  trackColor={{ false: '#E5E7EB', true: '#10B981' }}
-                  thumbColor={soundEnabled ? '#fff' : '#f4f4f4'}
-                />
-              }
+              rightElement={<Switch {...switchProps(soundEnabled, setSoundEnabled)} />}
             />
             <SettingItem
-              icon="📳"
+              icon={<PhoneIcon color="#10B981" size={21} />}
               iconBg="#D1FAE5"
               title="震动提醒"
               subtitle="收到报警时震动提示"
-              rightElement={
-                <Switch
-                  value={vibrationEnabled}
-                  onValueChange={setVibrationEnabled}
-                  trackColor={{ false: '#E5E7EB', true: '#10B981' }}
-                  thumbColor={vibrationEnabled ? '#fff' : '#f4f4f4'}
-                />
-              }
+              rightElement={<Switch {...switchProps(vibrationEnabled, setVibrationEnabled)} />}
             />
           </SettingGroup>
 
           <SettingGroup title="系统设置">
             <SettingItem
-              icon="🔄"
+              icon={<RefreshIcon color="#6366F1" size={21} />}
               iconBg="#E0E7FF"
               title="自动刷新"
               subtitle="每30秒自动刷新设备数据"
-              rightElement={
-                <Switch
-                  value={autoRefresh}
-                  onValueChange={setAutoRefresh}
-                  trackColor={{ false: '#E5E7EB', true: '#10B981' }}
-                  thumbColor={autoRefresh ? '#fff' : '#f4f4f4'}
-                />
-              }
+              rightElement={<Switch {...switchProps(autoRefresh, setAutoRefresh)} />}
             />
             <SettingItem
-              icon="🗑️"
+              icon={<TrashIcon color="#EF4444" size={21} />}
               iconBg="#FEE2E2"
               title="清除缓存"
               subtitle="清除本地存储的临时数据"
@@ -253,14 +255,14 @@ export default function SettingsScreen() {
 
           <SettingGroup title="其他">
             <SettingItem
-              icon="❓"
+              icon={<HelpIcon color="#EAB308" size={21} />}
               iconBg="#FEF9C3"
               title="帮助与反馈"
               subtitle="获取帮助或提交问题"
               onPress={handleHelp}
             />
             <SettingItem
-              icon="ℹ️"
+              icon={<InfoIcon color="#6B7280" size={21} />}
               iconBg="#E5E7EB"
               title="关于"
               subtitle="版本 1.0.0"
@@ -421,8 +423,8 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingHorizontal: 20,
     paddingBottom: 25,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28
   },
   headerTitle: {
     fontSize: 26,
@@ -569,9 +571,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center'
-  },
-  settingIconText: {
-    fontSize: 20
   },
   settingContent: {
     flex: 1,

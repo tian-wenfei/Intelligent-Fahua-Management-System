@@ -2,59 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Alert as AlertType } from './src/types';
 import { mockAlerts } from './src/data/mockData';
+import { getAlertConfig, getTypeConfig } from './src/config/constants';
+import { ClockIcon, CheckCircleIcon } from './src/components/icons';
 
-const ALERT_CONFIG = {
-  critical: {
-    color: '#EF4444',
-    bgColor: '#FEF2F2',
-    borderColor: '#EF4444',
-    label: '紧急',
-    icon: '!'
-  },
-  warning: {
-    color: '#F59E0B',
-    bgColor: '#FFFBEB',
-    borderColor: '#F59E0B',
-    label: '警告',
-    icon: '⚠'
-  },
-  info: {
-    color: '#3B82F6',
-    bgColor: '#EFF6FF',
-    borderColor: '#3B82F6',
-    label: '提示',
-    icon: 'ℹ'
-  }
-};
-
-const TYPE_CONFIG = {
-  temperature: { label: '温度异常', icon: '🌡️' },
-  humidity: { label: '湿度异常', icon: '💧' },
-  system: { label: '系统报警', icon: '⚙️' },
-  maintenance: { label: '维护提醒', icon: '🔧' }
-};
+const FILTERS = [
+  { key: 'all', label: '全部', color: '#9CA3AF' },
+  { key: 'critical', label: '紧急', color: '#EF4444' },
+  { key: 'warning', label: '警告', color: '#F59E0B' },
+  { key: 'info', label: '提示', color: '#3B82F6' }
+];
 
 export default function AlertCenterScreen() {
   const [alerts, setAlerts] = useState<AlertType[]>(mockAlerts);
   const [filterLevel, setFilterLevel] = useState<string>('all');
-  const [unreadCount, setUnreadCount] = useState(0);
 
-  useEffect(() => {
-    updateUnreadCount();
-  }, [alerts]);
-
-  const updateUnreadCount = () => {
-    const count = alerts.filter(a => !a.isRead).length;
-    setUnreadCount(count);
-  };
+  const unreadCount = alerts.filter(a => !a.isRead).length;
 
   const filteredAlerts = alerts.filter(alert => {
     return filterLevel === 'all' || alert.level === filterLevel;
   });
-
-  const getAlertConfig = (level: string) => ALERT_CONFIG[level as keyof typeof ALERT_CONFIG] || ALERT_CONFIG.info;
-
-  const getTypeConfig = (type: string) => TYPE_CONFIG[type as keyof typeof TYPE_CONFIG] || TYPE_CONFIG.system;
 
   const handleMarkAsRead = (alertId: string) => {
     setAlerts(prev =>
@@ -96,62 +62,6 @@ export default function AlertCenterScreen() {
     );
   };
 
-  const renderAlert = ({ item }: { item: AlertType }) => {
-    const config = getAlertConfig(item.level);
-    const typeConfig = getTypeConfig(item.type);
-
-    return (
-      <TouchableOpacity
-        style={[
-          styles.alertCard,
-          !item.isRead && styles.alertCardUnread,
-          { borderLeftColor: config.borderColor }
-        ]}
-        onPress={() => handleMarkAsRead(item.id)}
-        onLongPress={() => handleDeleteAlert(item.id)}
-        activeOpacity={0.8}
-      >
-        <View style={styles.alertHeader}>
-          <View style={styles.alertHeaderLeft}>
-            <View style={[styles.alertIconContainer, { backgroundColor: config.color }]}>
-              <Text style={styles.alertIcon}>{config.icon}</Text>
-            </View>
-            <View style={styles.alertTitleArea}>
-              <Text style={styles.alertDevice}>{item.deviceName}</Text>
-              <View style={styles.alertMeta}>
-                <View style={[styles.levelBadge, { backgroundColor: config.bgColor }]}>
-                  <Text style={[styles.levelBadgeText, { color: config.color }]}>
-                    {config.label}
-                  </Text>
-                </View>
-                <View style={[styles.typeBadge, { backgroundColor: '#F3F4F6' }]}>
-                  <Text style={styles.typeBadgeText}>
-                    {typeConfig.icon} {typeConfig.label}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
-          {!item.isRead && <View style={[styles.unreadDot, { backgroundColor: config.color }]} />}
-        </View>
-
-        <Text style={styles.alertMessage}>{item.message}</Text>
-
-        <View style={styles.alertFooter}>
-          <Text style={styles.alertTime}>🕐 {item.timestamp}</Text>
-          <TouchableOpacity
-            style={styles.markReadBtn}
-            onPress={() => handleMarkAsRead(item.id)}
-          >
-            <Text style={styles.markReadText}>
-              {item.isRead ? '✓ 已读' : '标为已读'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
   const criticalCount = alerts.filter(a => a.level === 'critical' && !a.isRead).length;
   const warningCount = alerts.filter(a => a.level === 'warning' && !a.isRead).length;
   const infoCount = alerts.filter(a => a.level === 'info' && !a.isRead).length;
@@ -169,95 +79,101 @@ export default function AlertCenterScreen() {
                 </View>
               )}
             </View>
+
+            <TouchableOpacity
+              style={styles.markAllBtn}
+              onPress={handleMarkAllAsRead}
+              activeOpacity={0.8}
+            >
+              <CheckCircleIcon color="#fff" size={16} />
+              <Text style={styles.markAllBtnText}>全部标为已读</Text>
+            </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            style={styles.markAllBtn}
-            onPress={handleMarkAllAsRead}
-          >
-            <Text style={styles.markAllBtnText}>✓ 全部标为已读</Text>
-          </TouchableOpacity>
-
           <View style={styles.filterContainer}>
-            {[
-              { key: 'all', label: '全部', icon: '📋' },
-              { key: 'critical', label: '紧急', icon: '🔴' },
-              { key: 'warning', label: '警告', icon: '🟡' },
-              { key: 'info', label: '提示', icon: '🔵' }
-            ].map(filter => (
-              <TouchableOpacity
-                key={filter.key}
-                style={[
-                  styles.filterButton,
-                  filterLevel === filter.key && styles.filterButtonActive
-                ]}
-                onPress={() => setFilterLevel(filter.key)}
-              >
-                <Text style={styles.filterIcon}>{filter.icon}</Text>
-                <Text style={[
-                  styles.filterText,
-                  filterLevel === filter.key && styles.filterTextActive
-                ]}>
-                  {filter.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {FILTERS.map(filter => {
+              const active = filterLevel === filter.key;
+              return (
+                <TouchableOpacity
+                  key={filter.key}
+                  style={[styles.filterButton, active && styles.filterButtonActive]}
+                  onPress={() => setFilterLevel(filter.key)}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.filterDot, { backgroundColor: filter.color }]} />
+                  <Text style={[styles.filterText, active && styles.filterTextActive]}>
+                    {filter.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
         <View style={styles.listContainer}>
-          {filteredAlerts.map(item => (
-            <View
-              key={item.id}
-              style={[
-                styles.alertCard,
-                !item.isRead && styles.alertCardUnread,
-                { borderLeftColor: getAlertConfig(item.level).borderColor }
-              ]}
-            >
-              <View style={styles.alertHeader}>
-                <View style={styles.alertHeaderLeft}>
-                  <View style={[styles.alertIconContainer, { backgroundColor: getAlertConfig(item.level).color }]}>
-                    <Text style={styles.alertIcon}>{getAlertConfig(item.level).icon}</Text>
-                  </View>
-                  <View style={styles.alertTitleArea}>
-                    <Text style={styles.alertDevice}>{item.deviceName}</Text>
-                    <View style={styles.alertMeta}>
-                      <View style={[styles.levelBadge, { backgroundColor: getAlertConfig(item.level).bgColor }]}>
-                        <Text style={[styles.levelBadgeText, { color: getAlertConfig(item.level).color }]}>
-                          {getAlertConfig(item.level).label}
-                        </Text>
-                      </View>
-                      <View style={[styles.typeBadge, { backgroundColor: '#F3F4F6' }]}>
-                        <Text style={styles.typeBadgeText}>
-                          {getTypeConfig(item.type).icon} {getTypeConfig(item.type).label}
-                        </Text>
+          {filteredAlerts.map(item => {
+            const config = getAlertConfig(item.level);
+            const typeConfig = getTypeConfig(item.type);
+
+            return (
+              <TouchableOpacity
+                key={item.id}
+                style={[
+                  styles.alertCard,
+                  !item.isRead && styles.alertCardUnread
+                ]}
+                onPress={() => handleMarkAsRead(item.id)}
+                onLongPress={() => handleDeleteAlert(item.id)}
+                activeOpacity={0.85}
+              >
+                <View style={styles.alertHeader}>
+                  <View style={styles.alertHeaderLeft}>
+                    <View style={[styles.alertIconContainer, { backgroundColor: config.color }]}>
+                      <Text style={styles.alertIcon}>{config.icon}</Text>
+                    </View>
+                    <View style={styles.alertTitleArea}>
+                      <Text style={styles.alertDevice}>{item.deviceName}</Text>
+                      <View style={styles.alertMeta}>
+                        <View style={[styles.levelBadge, { backgroundColor: config.bgColor }]}>
+                          <Text style={[styles.levelBadgeText, { color: config.color }]}>
+                            {config.label}
+                          </Text>
+                        </View>
+                        <View style={styles.typeBadge}>
+                          <Text style={styles.typeBadgeText}>{typeConfig.label}</Text>
+                        </View>
                       </View>
                     </View>
                   </View>
+                  {!item.isRead && <View style={[styles.unreadDot, { backgroundColor: config.color }]} />}
                 </View>
-                {!item.isRead && <View style={[styles.unreadDot, { backgroundColor: getAlertConfig(item.level).color }]} />}
-              </View>
 
-              <Text style={styles.alertMessage}>{item.message}</Text>
+                <Text style={styles.alertMessage}>{item.message}</Text>
 
-              <View style={styles.alertFooter}>
-                <Text style={styles.alertTime}>🕐 {item.timestamp}</Text>
-                <TouchableOpacity
-                  style={styles.markReadBtn}
-                  onPress={() => handleMarkAsRead(item.id)}
-                >
-                  <Text style={styles.markReadText}>
-                    {item.isRead ? '✓ 已读' : '标为已读'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
+                <View style={styles.alertFooter}>
+                  <View style={styles.alertTimeRow}>
+                    <ClockIcon color="#9CA3AF" size={12} />
+                    <Text style={styles.alertTime}>{item.timestamp}</Text>
+                  </View>
+                  <View style={styles.markReadBtn}>
+                    <CheckCircleIcon
+                      color={item.isRead ? '#C4C4C4' : '#10B981'}
+                      size={14}
+                    />
+                    <Text style={[styles.markReadText, item.isRead && styles.markReadTextDone]}>
+                      {item.isRead ? '已读' : '标为已读'}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
 
           {filteredAlerts.length === 0 && (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyIcon}>🎉</Text>
+              <View style={styles.emptyIconBg}>
+                <CheckCircleIcon color="#10B981" size={40} strokeWidth={1.4} />
+              </View>
               <Text style={styles.emptyText}>暂无报警信息</Text>
               <Text style={styles.emptySubtext}>所有设备运行正常</Text>
             </View>
@@ -298,15 +214,16 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingHorizontal: 20,
     paddingBottom: 20,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28
   },
   headerTop: {
-    marginBottom: 14
+    marginBottom: 16
   },
   headerTitleArea: {
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    marginBottom: 14
   },
   headerTitle: {
     fontSize: 26,
@@ -327,35 +244,41 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   markAllBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    alignSelf: 'flex-start',
-    marginBottom: 16
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    alignSelf: 'flex-start'
   },
   markAllBtnText: {
     fontSize: 13,
     color: '#fff',
-    fontWeight: '500'
+    fontWeight: '500',
+    marginLeft: 6
   },
   filterContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between'
   },
   filterButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    justifyContent: 'center',
+    marginHorizontal: 4,
+    paddingVertical: 9,
     borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.2)'
   },
   filterButtonActive: {
     backgroundColor: '#fff'
   },
-  filterIcon: {
-    fontSize: 14,
+  filterDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     marginRight: 6
   },
   filterText: {
@@ -368,14 +291,13 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 16,
-    paddingTop: 20
+    paddingTop: 18
   },
   alertCard: {
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 16,
     marginBottom: 14,
-    borderLeftWidth: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -422,13 +344,14 @@ const styles = StyleSheet.create({
   alertMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 6
+    flexWrap: 'wrap'
   },
   levelBadge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 8
+    borderRadius: 8,
+    marginRight: 6,
+    marginBottom: 4
   },
   levelBadgeText: {
     fontSize: 11,
@@ -439,7 +362,9 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 8,
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    marginBottom: 4
   },
   typeBadgeText: {
     fontSize: 11,
@@ -464,28 +389,44 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6'
   },
+  alertTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
   alertTime: {
     fontSize: 12,
-    color: '#9CA3AF'
+    color: '#9CA3AF',
+    marginLeft: 5
   },
   markReadBtn: {
-    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
     backgroundColor: '#F3F4F6'
   },
   markReadText: {
     fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '500'
+    color: '#10B981',
+    fontWeight: '500',
+    marginLeft: 4
+  },
+  markReadTextDone: {
+    color: '#9CA3AF'
   },
   emptyContainer: {
     alignItems: 'center',
     paddingTop: 80
   },
-  emptyIcon: {
-    fontSize: 70,
-    marginBottom: 20
+  emptyIconBg: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: '#ECFDF5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16
   },
   emptyText: {
     fontSize: 18,
@@ -499,7 +440,7 @@ const styles = StyleSheet.create({
   },
   summaryBar: {
     backgroundColor: '#fff',
-    padding: 18,
+    padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-around',
     borderTopWidth: 1,

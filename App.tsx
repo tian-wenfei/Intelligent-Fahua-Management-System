@@ -14,33 +14,32 @@ import SettingsScreen from './SettingsScreen';
 import LoginScreen from './LoginScreen';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { RootStackParamList, MainTabParamList } from './src/types/navigation';
+import { HomeIcon, DeviceIcon, AlertIcon, ProfileIcon } from './src/components/icons';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-function TabIcon({ name, focused }: { name: string; focused: boolean }) {
-  const icons: Record<string, string> = {
-    '首页': '🏠',
-    '设备': '🖥',
-    '报警': '🚨',
-    '我的': '🙎'
-  };
-
-  return (
-    <View style={styles.tabIconContainer}>
-      <Text style={[styles.tabIcon, focused && styles.tabIconFocused]}>
-        {icons[name] || '📱'}
-      </Text>
-    </View>
-  );
+function TabIcon({ name, color }: { name: string; color: string }) {
+  switch (name) {
+    case '首页':
+      return <HomeIcon color={color} size={24} />;
+    case '设备':
+      return <DeviceIcon color={color} size={24} />;
+    case '报警':
+      return <AlertIcon color={color} size={24} />;
+    case '我的':
+      return <ProfileIcon color={color} size={24} />;
+    default:
+      return <HomeIcon color={color} size={24} />;
+  }
 }
 
 function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused }) => (
-          <TabIcon name={route.name} focused={focused} />
+        tabBarIcon: ({ color }) => (
+          <TabIcon name={route.name} color={color} />
         ),
         tabBarActiveTintColor: '#4CAF50',
         tabBarInactiveTintColor: '#999',
@@ -118,17 +117,6 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  tabIconContainer: {
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  tabIcon: {
-    fontSize: 24,
-    opacity: 0.6
-  },
-  tabIconFocused: {
-    opacity: 1
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',

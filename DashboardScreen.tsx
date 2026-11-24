@@ -180,7 +180,7 @@ export default function DashboardScreen() {
           {recentAlerts.map((alert, index) => (
             <View
               key={alert.id}
-              style={[styles.alertCard, { backgroundColor: getAlertBgColor(alert.level), borderLeftColor: getAlertColor(alert.level) }]}
+              style={[styles.alertCard, { backgroundColor: getAlertBgColor(alert.level) }]}
             >
               <View style={[styles.alertIconContainer, { backgroundColor: getAlertColor(alert.level) }]}>
                 <Text style={styles.alertIconText}>
@@ -412,8 +412,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 14,
     marginBottom: 10,
-    flexDirection: 'row',
-    borderLeftWidth: 4
+    flexDirection: 'row'
   },
   alertIconContainer: {
     width: 34,
